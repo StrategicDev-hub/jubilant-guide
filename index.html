@@ -6,197 +6,135 @@
   <title>StoreCast — Send Updates</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-b from-yellow-50 to-white min-h-screen">
-  <div class="max-w-3xl mx-auto p-6">
+<body class="bg-gray-50 min-h-screen font-sans">
+  <div class="max-w-2xl mx-auto p-4">
     <!-- Header -->
     <div class="flex items-center gap-3 mb-6">
-      <img id="logoImg" class="h-12 w-12 rounded-full border shadow" src="" alt="Shop Logo"/>
-      <h1 class="text-2xl font-bold" id="shopTitle">StoreCast</h1>
+      <img id="logoImg" class="h-14 w-14 rounded-full border shadow" src="" alt="Logo"/>
+      <h1 id="shopTitle" class="text-2xl font-bold text-gray-800">StoreCast</h1>
     </div>
 
     <!-- Form -->
-    <div class="bg-white shadow-lg rounded-2xl p-6">
-      <p class="text-sm text-gray-600 mb-4">
-        Upload an image or speak. We’ll turn it into a WhatsApp update in Telugu/Hindi/English.
-      </p>
+    <div class="bg-white shadow-md rounded-xl p-6">
+      <label class="block text-sm font-medium">Headline</label>
+      <input id="headline" class="w-full p-3 border rounded mt-1" placeholder="Festival Greetings / New Arrival"/>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Left side -->
-        <div>
-          <label class="block text-sm font-medium">Headline</label>
-          <input id="headline" class="w-full p-3 border rounded" placeholder="New 22K Ring!"/>
+      <label class="block text-sm font-medium mt-3">Price (optional)</label>
+      <input id="price" class="w-full p-3 border rounded mt-1" placeholder="₹12,900 (if product)"/>
 
-          <label class="block text-sm font-medium mt-3">Price</label>
-          <input id="price" class="w-full p-3 border rounded" placeholder="₹12,900"/>
-
-          <label class="block text-sm font-medium mt-3">Message (or use voice)</label>
-          <textarea id="message" class="w-full p-3 border rounded h-28" placeholder="Short message..."></textarea>
-
-          <div class="flex gap-2 mt-2">
-            <button id="startVoice" class="px-4 py-2 bg-yellow-400 rounded shadow">🎤 Speak</button>
-            <button id="stopVoice" class="px-4 py-2 bg-gray-200 rounded">■ Stop</button>
-            <select id="lang" class="p-2 border rounded">
-              <option value="hi-IN">Hindi</option>
-              <option value="te-IN">Telugu</option>
-              <option value="en-IN">English</option>
-            </select>
-          </div>
-
-          <label class="block text-sm font-medium mt-3">CTA (Call to Action)</label>
-          <input id="ctaText" class="w-full p-3 border rounded" placeholder="Order Now"/>
-          <input id="ctaLink" class="w-full p-3 border rounded mt-2" placeholder="https://wa.me/+91XXXXXXXXXX?text=ORDER"/>
-        </div>
-
-        <!-- Right side -->
-        <div>
-          <label class="block text-sm font-medium">Upload Image</label>
-          <input type="file" id="imageFile" accept="image/*" class="w-full mt-2"/>
-          <img id="preview" class="mt-4 rounded shadow-sm" style="max-width:100%; display:none"/>
-          
-          <div class="mt-3 flex gap-2">
-            <button id="generateAI" class="px-4 py-2 bg-indigo-500 text-white rounded">✨ Suggest Message (AI)</button>
-            <button id="sendNow" class="px-4 py-2 bg-green-500 text-white rounded">Send to Customers</button>
-          </div>
-          <p id="status" class="text-sm mt-3 text-gray-600"></p>
-        </div>
+      <label class="block text-sm font-medium mt-3">Message (or use voice)</label>
+      <textarea id="message" class="w-full p-3 border rounded mt-1 h-28" placeholder="Type or Speak..."></textarea>
+      
+      <div class="flex gap-2 mt-2">
+        <button id="startVoice" class="px-4 py-2 bg-yellow-400 rounded shadow">🎤 Speak</button>
+        <button id="stopVoice" class="px-4 py-2 bg-gray-200 rounded">■ Stop</button>
+        <select id="lang" class="p-2 border rounded">
+          <option value="hi-IN">Hindi</option>
+          <option value="te-IN">Telugu</option>
+          <option value="en-IN">English</option>
+        </select>
       </div>
 
-      <!-- Preview -->
-      <div class="mt-6">
-        <p class="text-sm text-gray-500">Preview:</p>
-        <div id="phonePreview" class="border rounded p-3 bg-gray-50 hidden">
-          <strong id="previewHeadline"></strong>
-          <p id="previewMessage" class="mt-2"></p>
-          <p id="previewPrice" class="mt-1 font-semibold text-yellow-700"></p>
-          <img id="previewImg" class="mt-2 rounded" style="max-width:220px"/>
-          <p id="previewCTA" class="mt-2 text-blue-600 underline"></p>
-        </div>
+      <label class="block text-sm font-medium mt-3">Upload Product Image (optional)</label>
+      <input type="file" id="imageFile" accept="image/*" class="w-full mt-1"/>
+      <img id="preview" class="mt-3 rounded-lg shadow-sm hidden" style="max-width:100%"/>
+
+      <div class="flex gap-3 mt-4">
+        <button id="generateAI" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg">✨ Suggest (AI)</button>
+        <button id="sendNow" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg">🚀 Send</button>
+      </div>
+      <p id="status" class="text-sm mt-3 text-gray-600"></p>
+    </div>
+
+    <!-- Preview -->
+    <div class="mt-6">
+      <p class="text-sm text-gray-500">Preview:</p>
+      <div id="phonePreview" class="border rounded-xl p-4 bg-white shadow hidden">
+        <p class="text-lg font-semibold" id="previewHeadline"></p>
+        <p id="previewMessage" class="mt-2 whitespace-pre-wrap"></p>
+        <p id="previewPrice" class="mt-1 font-semibold text-yellow-700"></p>
+        <img id="previewImg" class="mt-2 rounded hidden" style="max-width:220px"/>
+        <p id="previewFooter" class="mt-3 text-gray-700 text-sm"></p>
       </div>
     </div>
   </div>
 
 <script>
-/* ----------- CONFIG PLACEHOLDERS ----------- */
-const MAKE_WEBHOOK = "https://hook.eu2.make.com/yv5itn63eft9chv38vhdvil3mh86gfrl"; 
-// e.g. https://hook.make.com/abcd1234 (without /broadcast or /ai-suggest)
+/* ------------------ CONFIG ------------------ */
+const MAKE_WEBHOOK = "https://hook.eu2.make.com/yv5itn63eft9chv38vhdvil3mh86gfrl";
 const CLOUD_NAME = "de5vsofvd";
 const UPLOAD_PRESET = "storecast_upload";
 
-/* ----------- FETCH SHOP CONFIG ----------- */
-function getQueryParam(name){ return new URL(location.href).searchParams.get(name); }
-const shop = getQueryParam('shop') || 'demo-shop';
+/* Get shop from URL */
+function getQueryParam(n){ return new URL(location.href).searchParams.get(n); }
+const shop = getQueryParam("shop") || "demo-shop";
 let shopConfig = {};
 
+/* Fetch config (logo, shop name, phone) */
 async function fetchConfig(){
-  try {
-    const res = await fetch(MAKE_WEBHOOK + "/fetch-config?shop=" + shop);
-    shopConfig = await res.json();
-    document.getElementById('shopTitle').textContent = shopConfig.shopName || "StoreCast";
-    if(shopConfig.logoUrl) document.getElementById('logoImg').src = shopConfig.logoUrl;
-  } catch(e){ console.error("Config fetch failed", e); }
+  const res = await fetch(MAKE_WEBHOOK + "/fetch-config?shop=" + shop);
+  shopConfig = await res.json();
+  document.getElementById("shopTitle").textContent = shopConfig.shopName || "StoreCast";
+  if(shopConfig.logoUrl) document.getElementById("logoImg").src = shopConfig.logoUrl;
 }
 fetchConfig();
 
-/* ----------- CLOUDINARY UPLOAD ----------- */
-async function uploadToCloudinary(file){
-  if(!file) return null;
-  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', UPLOAD_PRESET);
-  fd.append('folder', shop); // keep images per shop
-  const res = await fetch(url, { method: 'POST', body: fd });
-  const j = await res.json();
-  return j.secure_url || null;
+/* Update Preview */
+const ph = document.getElementById("phonePreview");
+function updatePreview(){
+  document.getElementById("previewHeadline").textContent = document.getElementById("headline").value;
+  document.getElementById("previewMessage").textContent = document.getElementById("message").value;
+  document.getElementById("previewPrice").textContent = document.getElementById("price").value;
+  document.getElementById("previewFooter").textContent = "📞 " + (shopConfig.phone || "");
+  ph.classList.remove("hidden");
 }
+["headline","message","price"].forEach(id=> document.getElementById(id).oninput=updatePreview);
 
-/* ----------- UI PREVIEW UPDATES ----------- */
-const previewHeadline = document.getElementById('previewHeadline');
-const previewMessage = document.getElementById('previewMessage');
-const previewPrice = document.getElementById('previewPrice');
-const previewImg = document.getElementById('previewImg');
-const previewCTA = document.getElementById('previewCTA');
-const phonePreview = document.getElementById('phonePreview');
-
-document.getElementById('headline').oninput = ()=>{ previewHeadline.textContent = document.getElementById('headline').value; phonePreview.classList.remove('hidden'); }
-document.getElementById('message').oninput = ()=>{ previewMessage.textContent = document.getElementById('message').value; phonePreview.classList.remove('hidden'); }
-document.getElementById('price').oninput = ()=>{ previewPrice.textContent = document.getElementById('price').value; phonePreview.classList.remove('hidden'); }
-document.getElementById('ctaText').oninput = ()=>{ previewCTA.textContent = document.getElementById('ctaText').value; phonePreview.classList.remove('hidden'); }
-document.getElementById('ctaLink').oninput = ()=>{ previewCTA.href = document.getElementById('ctaLink').value; previewCTA.textContent = document.getElementById('ctaText').value; }
-
-/* ----------- IMAGE PREVIEW ----------- */
-document.getElementById('imageFile').onchange = (e)=>{
+/* Image preview */
+document.getElementById("imageFile").onchange=(e)=>{
   const f = e.target.files[0];
   if(!f) return;
-  const url = URL.createObjectURL(f);
-  document.getElementById('preview').src = url;
-  document.getElementById('preview').style.display = 'block';
-  previewImg.src = url;
-  phonePreview.classList.remove('hidden');
+  const url=URL.createObjectURL(f);
+  document.getElementById("preview").src=url; document.getElementById("preview").classList.remove("hidden");
+  document.getElementById("previewImg").src=url; document.getElementById("previewImg").classList.remove("hidden");
+  updatePreview();
+};
+
+/* Voice input */
+let rec;
+document.getElementById("startVoice").onclick=()=>{
+  const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Rec){ alert("Browser not supported"); return;}
+  rec=new Rec(); rec.lang=document.getElementById("lang").value; rec.interimResults=false;
+  rec.onresult=(ev)=>{ document.getElementById("message").value=ev.results[0][0].transcript; updatePreview(); };
+  rec.start(); document.getElementById("status").textContent="🎤 Listening...";
+};
+document.getElementById("stopVoice").onclick=()=>{ if(rec) rec.stop(); document.getElementById("status").textContent=""; };
+
+/* Cloudinary upload */
+async function upload(file){
+  if(!file) return null;
+  const url=`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  const fd=new FormData(); fd.append("file",file); fd.append("upload_preset",UPLOAD_PRESET); fd.append("folder",shop);
+  const r=await fetch(url,{method:"POST",body:fd}); return (await r.json()).secure_url;
 }
 
-/* ----------- VOICE INPUT ----------- */
-let recognizer;
-document.getElementById('startVoice').onclick = ()=>{
-  const lang = document.getElementById('lang').value;
-  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!Rec){ alert("Voice not supported in this browser."); return; }
-  recognizer = new Rec();
-  recognizer.lang = lang;
-  recognizer.interimResults = false;
-  recognizer.onresult = ev=>{
-    const txt = ev.results[0][0].transcript;
-    document.getElementById('message').value = txt;
-    previewMessage.textContent = txt;
-    phonePreview.classList.remove('hidden');
-  };
-  recognizer.start();
-  document.getElementById('status').textContent = "Listening...";
-};
-document.getElementById('stopVoice').onclick = ()=>{ if(recognizer) recognizer.stop(); document.getElementById('status').textContent = ""; };
-
-/* ----------- AI SUGGESTION ----------- */
-document.getElementById('generateAI').onclick = async ()=>{
-  const status = document.getElementById('status');
-  status.textContent = "Generating suggestion...";
-  const body = {
-    shop, 
-    headline: document.getElementById('headline').value,
-    price: document.getElementById('price').value,
-    seedText: document.getElementById('message').value,
-    lang: document.getElementById('lang').value
-  };
-  const r = await fetch(MAKE_WEBHOOK + "/ai-suggest", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-  if(r.ok){
-    const j = await r.json();
-    document.getElementById('message').value = j.suggestion || "";
-    previewMessage.textContent = j.suggestion || "";
-    phonePreview.classList.remove('hidden');
-    status.textContent = "Suggestion ready.";
-  } else {
-    status.textContent = "AI failed.";
-  }
+/* AI Suggest */
+document.getElementById("generateAI").onclick=async()=>{
+  const body={shop,headline:headline.value,price:price.value,seedText:message.value,lang:lang.value};
+  document.getElementById("status").textContent="Thinking...";
+  const r=await fetch(MAKE_WEBHOOK+"/ai-suggest",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(r.ok){ const j=await r.json(); message.value=j.suggestion; updatePreview(); status.textContent="✨ AI ready"; }
+  else status.textContent="AI failed";
 };
 
-/* ----------- SEND TO CUSTOMERS ----------- */
-document.getElementById('sendNow').onclick = async ()=>{
-  const status = document.getElementById('status');
-  status.textContent = "Uploading & sending...";
-  const file = document.getElementById('imageFile').files[0];
-  const imageUrl = await uploadToCloudinary(file);
-  const body = {
-    shop,
-    headline: document.getElementById('headline').value,
-    price: document.getElementById('price').value,
-    message: document.getElementById('message').value,
-    ctaText: document.getElementById('ctaText').value,
-    ctaLink: document.getElementById('ctaLink').value,
-    lang: document.getElementById('lang').value,
-    imageUrl
-  };
-  const r = await fetch(MAKE_WEBHOOK + "/broadcast", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-  if(r.ok) status.textContent = "Sent to queue. Customers will receive shortly.";
-  else status.textContent = "Failed to send.";
+/* Send */
+document.getElementById("sendNow").onclick=async()=>{
+  const f=imageFile.files[0]; const imgUrl=await upload(f);
+  const body={shop,headline:headline.value,price:price.value,message:message.value,lang:lang.value,imageUrl:imgUrl};
+  status.textContent="Sending...";
+  const r=await fetch(MAKE_WEBHOOK+"/broadcast",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(r.ok) status.textContent="✅ Sent to customers"; else status.textContent="❌ Failed";
 };
 </script>
 </body>
