@@ -1,11 +1,203 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>StoreCast</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>StoreCast — Send Updates</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>Welcome to StoreCast</h1>
-  <p>This is your first GitHub Pages site 🚀</p>
+<body class="bg-gradient-to-b from-yellow-50 to-white min-h-screen">
+  <div class="max-w-3xl mx-auto p-6">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <img id="logoImg" class="h-12 w-12 rounded-full border shadow" src="" alt="Shop Logo"/>
+      <h1 class="text-2xl font-bold" id="shopTitle">StoreCast</h1>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow-lg rounded-2xl p-6">
+      <p class="text-sm text-gray-600 mb-4">
+        Upload an image or speak. We’ll turn it into a WhatsApp update in Telugu/Hindi/English.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Left side -->
+        <div>
+          <label class="block text-sm font-medium">Headline</label>
+          <input id="headline" class="w-full p-3 border rounded" placeholder="New 22K Ring!"/>
+
+          <label class="block text-sm font-medium mt-3">Price</label>
+          <input id="price" class="w-full p-3 border rounded" placeholder="₹12,900"/>
+
+          <label class="block text-sm font-medium mt-3">Message (or use voice)</label>
+          <textarea id="message" class="w-full p-3 border rounded h-28" placeholder="Short message..."></textarea>
+
+          <div class="flex gap-2 mt-2">
+            <button id="startVoice" class="px-4 py-2 bg-yellow-400 rounded shadow">🎤 Speak</button>
+            <button id="stopVoice" class="px-4 py-2 bg-gray-200 rounded">■ Stop</button>
+            <select id="lang" class="p-2 border rounded">
+              <option value="hi-IN">Hindi</option>
+              <option value="te-IN">Telugu</option>
+              <option value="en-IN">English</option>
+            </select>
+          </div>
+
+          <label class="block text-sm font-medium mt-3">CTA (Call to Action)</label>
+          <input id="ctaText" class="w-full p-3 border rounded" placeholder="Order Now"/>
+          <input id="ctaLink" class="w-full p-3 border rounded mt-2" placeholder="https://wa.me/+91XXXXXXXXXX?text=ORDER"/>
+        </div>
+
+        <!-- Right side -->
+        <div>
+          <label class="block text-sm font-medium">Upload Image</label>
+          <input type="file" id="imageFile" accept="image/*" class="w-full mt-2"/>
+          <img id="preview" class="mt-4 rounded shadow-sm" style="max-width:100%; display:none"/>
+          
+          <div class="mt-3 flex gap-2">
+            <button id="generateAI" class="px-4 py-2 bg-indigo-500 text-white rounded">✨ Suggest Message (AI)</button>
+            <button id="sendNow" class="px-4 py-2 bg-green-500 text-white rounded">Send to Customers</button>
+          </div>
+          <p id="status" class="text-sm mt-3 text-gray-600"></p>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="mt-6">
+        <p class="text-sm text-gray-500">Preview:</p>
+        <div id="phonePreview" class="border rounded p-3 bg-gray-50 hidden">
+          <strong id="previewHeadline"></strong>
+          <p id="previewMessage" class="mt-2"></p>
+          <p id="previewPrice" class="mt-1 font-semibold text-yellow-700"></p>
+          <img id="previewImg" class="mt-2 rounded" style="max-width:220px"/>
+          <p id="previewCTA" class="mt-2 text-blue-600 underline"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ----------- CONFIG PLACEHOLDERS ----------- */
+const MAKE_WEBHOOK = "REPLACE_WITH_YOUR_MAKE_WEBHOOK_BASE"; 
+// e.g. https://hook.make.com/abcd1234 (without /broadcast or /ai-suggest)
+const CLOUD_NAME = "REPLACE_WITH_YOUR_CLOUDINARY_CLOUD_NAME";
+const UPLOAD_PRESET = "REPLACE_WITH_UNSIGNED_UPLOAD_PRESET";
+
+/* ----------- FETCH SHOP CONFIG ----------- */
+function getQueryParam(name){ return new URL(location.href).searchParams.get(name); }
+const shop = getQueryParam('shop') || 'demo-shop';
+let shopConfig = {};
+
+async function fetchConfig(){
+  try {
+    const res = await fetch(MAKE_WEBHOOK + "/fetch-config?shop=" + shop);
+    shopConfig = await res.json();
+    document.getElementById('shopTitle').textContent = shopConfig.shopName || "StoreCast";
+    if(shopConfig.logoUrl) document.getElementById('logoImg').src = shopConfig.logoUrl;
+  } catch(e){ console.error("Config fetch failed", e); }
+}
+fetchConfig();
+
+/* ----------- CLOUDINARY UPLOAD ----------- */
+async function uploadToCloudinary(file){
+  if(!file) return null;
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', UPLOAD_PRESET);
+  fd.append('folder', shop); // keep images per shop
+  const res = await fetch(url, { method: 'POST', body: fd });
+  const j = await res.json();
+  return j.secure_url || null;
+}
+
+/* ----------- UI PREVIEW UPDATES ----------- */
+const previewHeadline = document.getElementById('previewHeadline');
+const previewMessage = document.getElementById('previewMessage');
+const previewPrice = document.getElementById('previewPrice');
+const previewImg = document.getElementById('previewImg');
+const previewCTA = document.getElementById('previewCTA');
+const phonePreview = document.getElementById('phonePreview');
+
+document.getElementById('headline').oninput = ()=>{ previewHeadline.textContent = document.getElementById('headline').value; phonePreview.classList.remove('hidden'); }
+document.getElementById('message').oninput = ()=>{ previewMessage.textContent = document.getElementById('message').value; phonePreview.classList.remove('hidden'); }
+document.getElementById('price').oninput = ()=>{ previewPrice.textContent = document.getElementById('price').value; phonePreview.classList.remove('hidden'); }
+document.getElementById('ctaText').oninput = ()=>{ previewCTA.textContent = document.getElementById('ctaText').value; phonePreview.classList.remove('hidden'); }
+document.getElementById('ctaLink').oninput = ()=>{ previewCTA.href = document.getElementById('ctaLink').value; previewCTA.textContent = document.getElementById('ctaText').value; }
+
+/* ----------- IMAGE PREVIEW ----------- */
+document.getElementById('imageFile').onchange = (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const url = URL.createObjectURL(f);
+  document.getElementById('preview').src = url;
+  document.getElementById('preview').style.display = 'block';
+  previewImg.src = url;
+  phonePreview.classList.remove('hidden');
+}
+
+/* ----------- VOICE INPUT ----------- */
+let recognizer;
+document.getElementById('startVoice').onclick = ()=>{
+  const lang = document.getElementById('lang').value;
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!Rec){ alert("Voice not supported in this browser."); return; }
+  recognizer = new Rec();
+  recognizer.lang = lang;
+  recognizer.interimResults = false;
+  recognizer.onresult = ev=>{
+    const txt = ev.results[0][0].transcript;
+    document.getElementById('message').value = txt;
+    previewMessage.textContent = txt;
+    phonePreview.classList.remove('hidden');
+  };
+  recognizer.start();
+  document.getElementById('status').textContent = "Listening...";
+};
+document.getElementById('stopVoice').onclick = ()=>{ if(recognizer) recognizer.stop(); document.getElementById('status').textContent = ""; };
+
+/* ----------- AI SUGGESTION ----------- */
+document.getElementById('generateAI').onclick = async ()=>{
+  const status = document.getElementById('status');
+  status.textContent = "Generating suggestion...";
+  const body = {
+    shop, 
+    headline: document.getElementById('headline').value,
+    price: document.getElementById('price').value,
+    seedText: document.getElementById('message').value,
+    lang: document.getElementById('lang').value
+  };
+  const r = await fetch(MAKE_WEBHOOK + "/ai-suggest", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(r.ok){
+    const j = await r.json();
+    document.getElementById('message').value = j.suggestion || "";
+    previewMessage.textContent = j.suggestion || "";
+    phonePreview.classList.remove('hidden');
+    status.textContent = "Suggestion ready.";
+  } else {
+    status.textContent = "AI failed.";
+  }
+};
+
+/* ----------- SEND TO CUSTOMERS ----------- */
+document.getElementById('sendNow').onclick = async ()=>{
+  const status = document.getElementById('status');
+  status.textContent = "Uploading & sending...";
+  const file = document.getElementById('imageFile').files[0];
+  const imageUrl = await uploadToCloudinary(file);
+  const body = {
+    shop,
+    headline: document.getElementById('headline').value,
+    price: document.getElementById('price').value,
+    message: document.getElementById('message').value,
+    ctaText: document.getElementById('ctaText').value,
+    ctaLink: document.getElementById('ctaLink').value,
+    lang: document.getElementById('lang').value,
+    imageUrl
+  };
+  const r = await fetch(MAKE_WEBHOOK + "/broadcast", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(r.ok) status.textContent = "Sent to queue. Customers will receive shortly.";
+  else status.textContent = "Failed to send.";
+};
+</script>
 </body>
 </html>
